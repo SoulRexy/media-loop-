@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24/7 Media Loop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 40px;
+            border: 2px dashed #444;
+            border-radius: 20px;
+            margin: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .upload-section h2 {
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .upload-section p {
+            color: #888;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .media-container {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #000;
+        }
+
+        .media-container.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mediaDisplay {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00cc6a;
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            opacity: 0.7;
+        }
+
+        .fullscreen-btn:hover {
+            opacity: 1;
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 255, 136, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-section" id="uploadSection">
+        <h2>Upload Media</h2>
+        <p>Drop a GIF, Video, or Image here or click to browse</p>
+        <p style="margin-top: 10px; font-size: 12px;">Supports: GIF, MP4, WebM, JPG, PNG</p>
+        <input type="file" id="fileInput" accept="image/*,video/*">
+    </div>
+
+    <div class="media-container" id="mediaContainer">
+        <img id="imageDisplay" class="hidden">
+        <video id="videoDisplay" loop autoplay muted playsinline></video>
+    </div>
+
+    <div class="status hidden" id="status">
+        <span id="statusText">Looping...</span>
+    </div>
+
+    <button class="btn btn-secondary fullscreen-btn hidden" id="fullscreenBtn">Fullscreen</button>
+
+    <div class="controls hidden" id="controls">
+        <button class="btn btn-secondary" id="changeBtn">Change Media</button>
+        <button class="btn btn-primary" id="stopBtn">Stop Loop</button>
+    </div>
+
+    <script>
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const mediaContainer = document.getElementById('mediaContainer');
+        const imageDisplay = document.getElementById('imageDisplay');
+        const videoDisplay = document.getElementById('videoDisplay');
+        const controls = document.getElementById('controls');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const changeBtn = document.getElementById('changeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        // Click to upload
+        uploadSection.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#00ff88';
+            uploadSection.style.background = 'rgba(0, 255, 136, 0.1)';
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.style.borderColor = '#444';
+            uploadSection.style.background = 'transparent';
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#444';
+            uploadSection.style.background = 'transparent';
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            const url = URL.createObjectURL(file);
+            const isVideo = file.type.startsWith('video/');
+
+            uploadSection.style.display = 'none';
+            mediaContainer.classList.add('active');
+            controls.classList.remove('hidden');
+            status.classList.remove('hidden');
+            fullscreenBtn.classList.remove('hidden');
+
+            if (isVideo) {
+                imageDisplay.classList.add('hidden');
+                videoDisplay.classList.remove('hidden');
+                videoDisplay.src = url;
+                videoDisplay.play();
+                statusText.textContent = 'Looping Video 24/7';
+            } else {
+                videoDisplay.classList.add('hidden');
+                imageDisplay.classList.remove('hidden');
+                imageDisplay.src = url;
+                statusText.textContent = 'Looping Image 24/7';
+            }
+        }
+
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        });
+
+        // Change media
+        changeBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Stop loop
+        stopBtn.addEventListener('click', () => {
+            videoDisplay.pause();
+            videoDisplay.src = '';
+            imageDisplay.src = '';
+            mediaContainer.classList.remove('active');
+            uploadSection.style.display = 'block';
+            controls.classList.add('hidden');
+            status.classList.add('hidden');
+            fullscreenBtn.classList.add('hidden');
+        });
+
+        // Keyboard shortcut: F for fullscreen
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                fullscreenBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Loop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .media-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #mediaDisplay {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .no-media {
+            color: #444;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .no-media h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .loading {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 255, 136, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #00ff88;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="media-container">
+        <div class="no-media" id="noMedia">
+            <h2>Waiting for media...</h2>
+            <p>The stream will start automatically</p>
+        </div>
+        <img id="imageDisplay" style="display: none;">
+        <video id="videoDisplay" style="display: none;" loop autoplay muted playsinline></video>
+    </div>
+    <div class="loading" id="loading">Connecting...</div>
+
+    <script>
+        const noMedia = document.getElementById('noMedia');
+        const imageDisplay = document.getElementById('imageDisplay');
+        const videoDisplay = document.getElementById('videoDisplay');
+        const loading = document.getElementById('loading');
+
+        let currentMedia = null;
+
+        function checkMedia() {
+            fetch('/get_media')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        loading.style.display = 'none';
+
+                        // Only update if media changed
+                        if (currentMedia !== data.filename) {
+                            currentMedia = data.filename;
+                            loadMedia(data.filename, data.type);
+                        }
+                    } else {
+                        loading.textContent = 'Waiting for media...';
+                        loading.style.display = 'block';
+                        noMedia.style.display = 'block';
+                        imageDisplay.style.display = 'none';
+                        videoDisplay.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    loading.textContent = 'Connection lost. Retrying...';
+                });
+        }
+
+        function loadMedia(filename, type) {
+            const url = '/uploads/' + encodeURIComponent(filename);
+
+            if (type === 'video') {
+                noMedia.style.display = 'none';
+                imageDisplay.style.display = 'none';
+                videoDisplay.style.display = 'block';
+                videoDisplay.src = url;
+                videoDisplay.play();
+            } else {
+                noMedia.style.display = 'none';
+                videoDisplay.style.display = 'none';
+                imageDisplay.style.display = 'block';
+                imageDisplay.src = url;
+            }
+        }
+
+        // Check for media every 2 seconds
+        checkMedia();
+        setInterval(checkMedia, 2000);
+
+        // Request fullscreen on click (for better viewing)
+        document.body.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>

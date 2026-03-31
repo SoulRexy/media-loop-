@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        h1 {
+            color: #00ff88;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #00ff88;
+            color: #000;
+        }
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+        .btn-secondary {
+            background: #333;
+            color: white;
+        }
+        .upload-section {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px dashed #444;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-section:hover {
+            border-color: #00ff88;
+            background: #222;
+        }
+        .upload-section p {
+            color: #888;
+            margin-top: 10px;
+        }
+        #fileInput {
+            display: none;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .media-item {
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .media-item-info {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .media-item-name {
+            font-size: 12px;
+            color: #888;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            margin-right: 10px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Admin Panel</h1>
+        <div>
+            <a href="/" class="btn btn-secondary">View Site</a>
+            <a href="/logout" class="btn btn-danger" style="margin-left: 10px;">Logout</a>
+        </div>
+    </div>
+
+    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+        <h2>📁 Upload New Media</h2>
+        <p>Click or drag files here (GIF, MP4, WebM, JPG, PNG)</p>
+        <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+            <input type="file" id="fileInput" name="file" accept="image/*,video/*" onchange="document.getElementById('uploadForm').submit()">
+        </form>
+    </div>
+
+    <h2 style="margin-bottom: 20px; color: #888;">Current Media</h2>
+
+    {% if files %}
+    <div class="media-grid">
+        {% for file in files %}
+        <div class="media-item">
+            {% if file.endswith(('.mp4', '.webm', '.mov')) %}
+            <video src="{{ url_for('uploaded_file', filename=file) }}" muted></video>
+            {% else %}
+            <img src="{{ url_for('uploaded_file', filename=file) }}">
+            {% endif %}
+            <div class="media-item-info">
+                <span class="media-item-name">{{ file }}</span>
+                <a href="/delete/{{ file }}" class="btn btn-danger" onclick="return confirm('Delete this file?')">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No media uploaded yet. Upload something to start the 24/7 loop!</p>
+    </div>
+    {% endif %}
+</body>
+</html>
