@@ -8,7 +8,7 @@ app.secret_key = 'your-secret-key-change-this'  # Change this!
 
 # Configuration
 ADMIN_PASSWORD = 'admin123'  # Change this password!
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'mov'}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -35,8 +35,12 @@ def index():
 @app.route('/get_media')
 def get_media():
     """Returns current media info"""
-    files = os.listdir(UPLOAD_FOLDER)
-    media_files = [f for f in files if allowed_file(f)]
+    try:
+        files = os.listdir(UPLOAD_FOLDER)
+        media_files = [f for f in files if allowed_file(f)]
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        return {'status': 'error', 'message': str(e)}
 
     if not media_files:
         return {'status': 'no_media'}
@@ -56,7 +60,7 @@ def get_media():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 # ==================== ADMIN ROUTES ====================
 
