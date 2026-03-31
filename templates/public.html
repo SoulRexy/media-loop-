@@ -94,8 +94,13 @@
 
         // Unmute button handler
         unmuteBtn.addEventListener('click', () => {
-            videoDisplay.muted = false;
-            unmuteBtn.style.display = 'none';
+            if (videoDisplay.muted) {
+                videoDisplay.muted = false;
+                unmuteBtn.textContent = '🔇 Mute';
+            } else {
+                videoDisplay.muted = true;
+                unmuteBtn.textContent = '🔊 Unmute';
+            }
         });
 
         function checkMedia() {
