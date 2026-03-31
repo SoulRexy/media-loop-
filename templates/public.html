@@ -50,6 +50,25 @@
             font-family: Arial, sans-serif;
             font-size: 12px;
         }
+        .unmute-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 255, 136, 0.9);
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: #000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        .unmute-btn:hover {
+            background: #00ff88;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -62,14 +81,22 @@
         <video id="videoDisplay" style="display: none;" loop autoplay muted playsinline></video>
     </div>
     <div class="loading" id="loading">Connecting...</div>
+    <button class="unmute-btn" id="unmuteBtn" style="display: none;">🔊 Unmute</button>
 
     <script>
         const noMedia = document.getElementById('noMedia');
         const imageDisplay = document.getElementById('imageDisplay');
         const videoDisplay = document.getElementById('videoDisplay');
         const loading = document.getElementById('loading');
+        const unmuteBtn = document.getElementById('unmuteBtn');
 
         let currentMedia = null;
+
+        // Unmute button handler
+        unmuteBtn.addEventListener('click', () => {
+            videoDisplay.muted = false;
+            unmuteBtn.style.display = 'none';
+        });
 
         function checkMedia() {
             fetch('/get_media')
@@ -106,11 +133,13 @@
                 videoDisplay.style.display = 'block';
                 videoDisplay.src = url;
                 videoDisplay.play();
+                unmuteBtn.style.display = 'block';
             } else {
                 noMedia.style.display = 'none';
                 videoDisplay.style.display = 'none';
                 imageDisplay.style.display = 'block';
                 imageDisplay.src = url;
+                unmuteBtn.style.display = 'none';
             }
         }
 
